@@ -1,9 +1,6 @@
-import { HydrateClient } from "~/trpc/server";
+// import { HydrateClient } from "~/trpc/server";
+import CheckboxSubmit from "~/components/CheckboxSubmit";
 
-export default async function Home() {
-  return (
-    <HydrateClient>
-      <div>This  is the homepage</div>
-    </HydrateClient>
-  );
+export default function Home() {
+  return <CheckboxSubmit />;
 }
