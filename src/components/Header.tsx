@@ -1,9 +1,11 @@
 "use client";
 
-import React, { Fragment } from "react";
+import React, { Fragment, useState } from "react";
 import { Drawer } from "vaul";
 
 export const Header = () => {
+  const [snap, setSnap] = useState<number | string | null>("148px");
+
   return (
     <Fragment>
       <div className="mt-2 flex flex-row justify-end gap-6">
@@ -50,7 +52,12 @@ export const Header = () => {
             />
           </svg>
         </div>
-        <Drawer.Root direction="right">
+        <Drawer.Root
+          direction="right"
+          snapPoints={["148px", "355px", 1]}
+          activeSnapPoint={snap}
+          setActiveSnapPoint={setSnap}
+        >
           <Drawer.Trigger asChild className="block md:hidden">
             <button>
               <svg
