@@ -10,35 +10,50 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
+model User {
+    id        Int         @id @default(autoincrement())
+    username  String      @unique
+    password  String
+    email     String      @unique
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    // Define the many-to-many relationship with Hobby
+    hobbies   Hobby[]     @relation("UserHobbies")
+    UserHobby UserHobby[]
+    Otp       Otp?
+}
+
+// Define the Hobby model
+model Hobby {
+    id        Int         @id @default(autoincrement())
+    name      String      @unique
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+    // Define the many-to-many relationship with User
+    users     User[]      @relation("UserHobbies")
+    UserHobby UserHobby[]
+}
+
+// Define the junction table UserHobby
+model UserHobby {
     id        Int      @id @default(autoincrement())
-    name      String
+    userId    Int
+    hobbyId   Int
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
 
-    @@index([name])
+    // Define the foreign key relationships
+    user  User  @relation(fields: [userId], references: [id])
+    hobby Hobby @relation(fields: [hobbyId], references: [id])
+
+    @@unique([userId, hobbyId])
 }
 
-model Users {
-    id       Int     @id @default(autoincrement())
-    name     String?
-    email    String? @unique
-    password String
-
-    createdAt      DateTime         @default(now())
-    updatedAt      DateTime         @updatedAt
-    SavedInterests SavedInterests[]
-}
-
-model Interests {
-    id   Int    @id @default(autoincrement())
-    slug String
-}
-
-model SavedInterests {
+model Otp {
     id        Int      @id @default(autoincrement())
-    user      Users    @relation(fields: [usersId], references: [id])
-    usersId   Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    code      String
+    expiresAt DateTime
+    userId    Int      @unique
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([code, expiresAt])
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-async-client-component */
 "use client";
 import React from "react";
 
@@ -13,6 +14,7 @@ import {
 import { Checkbox } from "./ui/checkbox";
 
 const CheckboxSubmit = () => {
+
   return (
     <div className="mt-10 flex justify-center">
       <div className="flex flex-col items-center rounded-xl border px-8 py-9">
