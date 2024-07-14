@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { generateOtp } from "~/utils";
 
 const prisma = new PrismaClient();
 
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
         errorData: null,
       });
     } else {
+     
       const res = await prisma.user.create({
         data: {
           username: data.data.username,
@@ -47,6 +49,12 @@ export async function POST(request: Request) {
           password: data.data.password,
         },
       });
+      // generate otp
+      const otpGen = await generateOtp(+res.id);
+      // send otp to email
+      if(otpGen) {
+        
+      }
       console.log({ res });
       return NextResponse.json({ message: "User registered" });
     }
