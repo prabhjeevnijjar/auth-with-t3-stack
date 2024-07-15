@@ -11,16 +11,17 @@ datasource db {
 }
 
 model User {
-    id        Int         @id @default(autoincrement())
-    username  String      @unique
-    password  String
-    email     String      @unique
-    createdAt DateTime    @default(now())
-    updatedAt DateTime    @updatedAt
+    id         Int         @id @default(autoincrement())
+    username   String      @unique
+    password   String
+    email      String      @unique
+    createdAt  DateTime    @default(now())
+    updatedAt  DateTime    @updatedAt
+    isVerified Boolean     @default(false)
     // Define the many-to-many relationship with Hobby
-    hobbies   Hobby[]     @relation("UserHobbies")
-    UserHobby UserHobby[]
-    Otp       Otp?
+    hobbies    Hobby[]     @relation("UserHobbies")
+    UserHobby  UserHobby[]
+    Otp        Otp?
 }
 
 // Define the Hobby model

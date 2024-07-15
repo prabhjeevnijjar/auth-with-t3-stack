@@ -16,6 +16,27 @@ const User = z
   })
   .required();
 
+const createNewUser = async (data) => {
+  console.log("here i am");
+  const res = await prisma.user.create({
+    data: {
+      username: data.data.username,
+      email: data.data.email,
+      password: data.data.password,
+    },
+  });
+  // generate otp
+  console.log({ res });
+
+  const otpGen = await generateOtp(res);
+  // send otp to email
+  if (otpGen) {
+    console.log({ otpGen });
+  }
+  console.log({ res });
+  return res;
+};
+
 export async function POST(request: Request) {
   try {
     const data = await User.safeParseAsync(await request.json()); // Parse JSON data from the request body
@@ -26,37 +47,75 @@ export async function POST(request: Request) {
         error: true,
         errorData: data.error.errors,
       });
-    console.log({ data });
+    console.log(data.data.username);
     // check if email already exists in db then return already register else register new
 
-    const user = await prisma.user.findUnique({
+    // check if user is verified anf trying to register redirect them to login page
+    // if user is not verified and is registered in db delete that record and add new and register again
+    const verifiedUser = await prisma.user.findMany({
       where: {
-        email: data.data.email,
+        AND: [
+          {
+            email: data.data.email,
+          },
+          {
+            username: data.data.username,
+          },
+        ],
       },
     });
-    if (user) {
-      return NextResponse.json({
-        message: "User already exists",
-        error: true,
-        errorData: null,
-      });
-    } else {
-     
-      const res = await prisma.user.create({
-        data: {
-          username: data.data.username,
-          email: data.data.email,
-          password: data.data.password,
+    console.log({ verifiedUser });
+    // if user not found with the email and username create new and unique entry
+    if (!verifiedUser?.length) {
+      const user = await prisma.user.findMany({
+        where: {
+          OR: [
+            {
+              email: data.data.email,
+            },
+            {
+              username: data.data.username,
+            },
+          ],
         },
       });
-      // generate otp
-      const otpGen = await generateOtp(+res.id);
-      // send otp to email
-      if(otpGen) {
-        
+      console.log({ user });
+      if (user?.length) {
+        return NextResponse.json({
+          message:
+            "Email OR Username already exists, Please use another combination",
+          error: true,
+          errorData: null,
+        });
+      } else {
+        const newUser = await createNewUser(data);
+        if (newUser)
+          return NextResponse.json({
+            message: "User registered, OTP sent on email",
+          });
       }
-      console.log({ res });
-      return NextResponse.json({ message: "User registered" });
+    } else if (verifiedUser?.length && verifiedUser[0]?.isVerified) {
+      // user found and otp is verified
+      return NextResponse.json({
+        message: "Already registerd",
+        error: false,
+        errorData: null,
+      });
+    } else if (verifiedUser?.length && !verifiedUser[0]?.isVerified) {
+      // user found and otp is not verified
+      // if user is not verified and is registered in db delete that record and add new and register again
+      const deleteUser = await prisma.user.delete({
+        where: {
+          email: data.data.email,
+        },
+      });
+      console.log({ deleteUser });
+      // create new
+      const newUser = await createNewUser(data);
+      if (newUser)
+        return NextResponse.json({
+          message: "User registered, OTP sent on email",
+        });
     }
   } catch (error) {
     return NextResponse.json({

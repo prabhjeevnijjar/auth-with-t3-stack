@@ -33,12 +33,14 @@ export async function POST(request: Request) {
         email: data.data.email,
       },
     });
-    if (user) {
-      // if email exist match the password
+    console.log({ user });
+
+    if (user?.isVerified) {
+      // if email exist and hav verified otp and match the password
 
       if (user.password === data.data.password) {
-        const otpGen = await generateOtp(+user.id);
-        // send otp to email
+        const otpGen = await generateOtp(user);
+        // if password matches send otp to email
         if (otpGen) {
           console.log(otpGen);
         }
@@ -49,7 +51,7 @@ export async function POST(request: Request) {
         errorData: null,
       });
     } else {
-      return NextResponse.json({ message: "User registered" });
+      return NextResponse.json({ message: "User not registered!" });
     }
   } catch (error) {
     return NextResponse.json({

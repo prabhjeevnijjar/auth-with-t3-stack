@@ -57,7 +57,18 @@ export async function POST(request: Request) {
           errorData: null,
         });
       } else {
+        // update user table with otp isVerified
+        const updateUser = await prisma.user.update({
+          where: {
+            email: data.data.email,
+          },
+          data: {
+            isVerified: true
+          },
+        })
+        console.log({updateUser})
         // delete otp record
+
         await prisma.otp.delete({
           where: { userId },
         });
