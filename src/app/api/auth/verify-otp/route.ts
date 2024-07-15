@@ -1,7 +1,10 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
 import { z } from "zod";
-import { generateOtp } from "~/utils";
+import jwt from "jsonwebtoken";
+import { encrypt } from "~/utils";
 
 const prisma = new PrismaClient();
 
@@ -15,7 +18,7 @@ const User = z
   })
   .required();
 
-export async function POST(request: Request) {
+export async function POST(request: Request, res: Response) {
   try {
     const data = await User.safeParseAsync(await request.json()); // Parse JSON data from the request body
     // validation
@@ -26,6 +29,7 @@ export async function POST(request: Request) {
         errorData: data.error.errors,
       });
     console.log({ data });
+
     // check if user email exists in DB
     // if password matches send OTP
 
@@ -63,14 +67,38 @@ export async function POST(request: Request) {
             email: data.data.email,
           },
           data: {
-            isVerified: true
+            isVerified: true,
           },
-        })
-        console.log({updateUser})
+        });
+        console.log({ updateUser });
         // delete otp record
 
         await prisma.otp.delete({
           where: { userId },
+        });
+        // Generate JWT with encrypted data
+        const encData = await encrypt(
+          JSON.stringify({
+            userId: user.id,
+            username: user.username,
+            email: user.email,
+          }),
+        );
+        console.log({ encData });
+
+        const token = jwt.sign(
+          encData,
+          process.env.JWT_SECRET_KEY,
+          { expiresIn: "1h" }, // Token expiration time
+        );
+        // generate cookie and encrypt it
+        cookies().set({
+          name: "name",
+          value: token,
+          httpOnly: true,
+          maxAge: 3600, // 1 hour
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
         });
         return NextResponse.json({
           message: "OTP Verified",
