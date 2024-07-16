@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { addMinutes } from "date-fns";
 import nodemailer from "nodemailer";
 
-import crypto from 'crypto'
+import crypto from "crypto";
 const prisma = new PrismaClient();
 
 const transporter = nodemailer.createTransport({
@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function generateOtp(user) {
-  const otpCode = uuidv4().slice(0, 6); // Generate a 6-character OTP
+  const otpCode = String(Math.floor(100000 + Math.random() * 900000)); // Generate a 6-character OTP
   const expiresAt = addMinutes(new Date(), 10); // OTP expires in 10 minutes
   console.log("i ame herere" + { user });
   await prisma.otp.upsert({
@@ -38,8 +38,7 @@ export async function generateOtp(user) {
   return otpCode;
 }
 
-
-const algorithm = 'aes-256-ctr';
+const algorithm = "aes-256-ctr";
 const secretKey = crypto.randomBytes(32);
 const iv = crypto.randomBytes(16);
 
@@ -48,15 +47,21 @@ export const encrypt = async (text: string) => {
   const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
 
   return {
-    iv: iv.toString('hex'),
-    content: encrypted.toString('hex')
+    iv: iv.toString("hex"),
+    content: encrypted.toString("hex"),
   };
 };
 
 export const decrypt = (hash: string) => {
-  const decipher = crypto.createDecipheriv(algorithm, secretKey, Buffer.from(hash.iv, 'hex'));
-  const decrypted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
+  const decipher = crypto.createDecipheriv(
+    algorithm,
+    secretKey,
+    Buffer.from(hash.iv, "hex"),
+  );
+  const decrypted = Buffer.concat([
+    decipher.update(Buffer.from(hash.content, "hex")),
+    decipher.final(),
+  ]);
 
   return decrypted.toString();
 };
-

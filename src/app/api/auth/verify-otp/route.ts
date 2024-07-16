@@ -47,17 +47,19 @@ export async function POST(request: Request, res: Response) {
       });
       console.log({ otpRecord });
       if (!otpRecord) {
-        return NextResponse.json({ message: "OTP not found" });
+        return NextResponse.json({ message: "OTP not found", error: true,
+          errorData: null, });
       }
 
       if (otpRecord.expiresAt < new Date()) {
-        return NextResponse.json({ message: "OTP Expired" });
+        return NextResponse.json({ message: "OTP Expired", error: true,
+          errorData: null, });
       }
 
       if (otpRecord.code !== data.data.code) {
         return NextResponse.json({
           message: "Invalid OTP",
-          error: false,
+          error: true,
           errorData: null,
         });
       } else {
@@ -102,14 +104,14 @@ export async function POST(request: Request, res: Response) {
         });
         return NextResponse.json({
           message: "OTP Verified",
-          error: true,
+          error: false,
           errorData: null,
         });
       }
     } else {
       return NextResponse.json({
         message: "User not found!",
-        error: false,
+        error: true,
         errorData: null,
       });
     }
