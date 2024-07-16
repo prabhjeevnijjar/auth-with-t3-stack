@@ -2,6 +2,7 @@
   "register": "/api/auth/register",
   "verifyPassword": "/api/auth/verify-password",
   "verifyOtp": "/api/auth/verify-otp",
+  "authMiddleware": "/api/auth-middleware",
   "saveHobby": "/api/hobby/add",
   "getHobbies": "/api/hobby/fetch"
 }

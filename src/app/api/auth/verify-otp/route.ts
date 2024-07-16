@@ -38,14 +38,14 @@ export async function POST(request: Request, res: Response) {
         email: data.data.email,
       },
     });
-    console.log({ user });
+
     if (user) {
       const { id: userId } = user;
       // if email exist match the password
       const otpRecord = await prisma.otp.findUnique({
         where: { userId },
       });
-      console.log({ otpRecord });
+
       if (!otpRecord) {
         return NextResponse.json({ message: "OTP not found", error: true,
           errorData: null, });
@@ -86,7 +86,6 @@ export async function POST(request: Request, res: Response) {
             email: user.email,
           }),
         );
-        console.log({ encData });
 
         const token = jwt.sign(
           encData,

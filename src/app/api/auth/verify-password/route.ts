@@ -37,21 +37,31 @@ export async function POST(request: Request) {
 
     if (user?.isVerified) {
       // if email exist and hav verified otp and match the password
+      console.log("=====1==========", data.data.password)
+      console.log("=====2==========", user.password)
 
       if (user.password === data.data.password) {
         const otpGen = await generateOtp(user);
         // if password matches send otp to email
-        if (otpGen) {
-          console.log(otpGen);
-        }
+        if (otpGen) return NextResponse.json({
+          message: "OTP sent on Email",
+          error: false,
+          errorData: null,
+        });
+      } else {
+        return NextResponse.json({
+          message: "Incorrect password",
+          error: true,
+          errorData: null,
+        });
       }
+      
+    } else {
       return NextResponse.json({
-        message: "OTP sent on registered email",
-        error: false,
+        message: "User not registered!",
+        error: true,
         errorData: null,
       });
-    } else {
-      return NextResponse.json({ message: "User not registered!" });
     }
   } catch (error) {
     return NextResponse.json({
