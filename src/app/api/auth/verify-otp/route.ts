@@ -41,19 +41,30 @@ export async function POST(request: Request, res: Response) {
 
     if (user) {
       const { id: userId } = user;
+      const userData = JSON.stringify({
+        userId: user.id,
+        username: user.username,
+        email: user.email,
+      });
       // if email exist match the password
       const otpRecord = await prisma.otp.findUnique({
         where: { userId },
       });
 
       if (!otpRecord) {
-        return NextResponse.json({ message: "OTP not found", error: true,
-          errorData: null, });
+        return NextResponse.json({
+          message: "OTP not found",
+          error: true,
+          errorData: null,
+        });
       }
 
       if (otpRecord.expiresAt < new Date()) {
-        return NextResponse.json({ message: "OTP Expired", error: true,
-          errorData: null, });
+        return NextResponse.json({
+          message: "OTP Expired",
+          error: true,
+          errorData: null,
+        });
       }
 
       if (otpRecord.code !== data.data.code) {
@@ -79,19 +90,18 @@ export async function POST(request: Request, res: Response) {
           where: { userId },
         });
         // Generate JWT with encrypted data
-        const encData = await encrypt(
-          JSON.stringify({
-            userId: user.id,
-            username: user.username,
-            email: user.email,
-          }),
-        );
+        const encData = await encrypt(userData);
+        console.log({ encData });
+        console.log("key:: ", process.env.JWT_SECRET_KEY);
+        console.log("email:", user.email, user.username, user.id);
 
         const token = jwt.sign(
-          encData,
+          { encData },
           process.env.JWT_SECRET_KEY,
-          { expiresIn: "1h" }, // Token expiration time
+          { expiresIn: 60 * 60 * 60 * 60 }, // Token expiration time
         );
+        console.log("TOKEN GENERATED: ", token);
+
         // generate cookie and encrypt it
         cookies().set({
           name: "name",

@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { isAuthenticated } from "~/utils-client";
 
 const prisma = new PrismaClient();
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   try {
-    // const {
-    //   params: { userId, page, pageSize },
-    // } = request;
+    const token = request.cookies.get("name");
+
+    // middle ware to check if user is authenticated else redirect to /login page
+    const result = await isAuthenticated(token?.value);
+    if (!token || !result.data.userId)
+      return NextResponse.json({
+        message: "User not authenticated",
+        error: true,
+        data: null,
+      });
     const { searchParams } = new URL(request.url);
-    const userId = +searchParams.get("userId");
+    const userId = result?.data?.userId;
     const pageSize = +searchParams.get("pageSize") || 6;
     const page = +searchParams.get("page") || 1;
-    console.log({ page });
+
     // Calculate the offset for pagination
     const offset = (page - 1) * pageSize;
 
@@ -21,10 +29,9 @@ export async function POST(request: Request) {
       skip: offset,
       take: pageSize,
     });
-    console.log({ hobbies });
+
     // Fetch the total count of hobbies for pagination info
     const totalHobbies = await prisma.hobby.count();
-    console.log({ totalHobbies });
 
     // Fetch the user's saved hobbies
     const userHobbies = await prisma.userHobby.findMany({
@@ -35,7 +42,6 @@ export async function POST(request: Request) {
         hobbyId: true,
       },
     });
-    console.log({ userHobbies });
 
     // Create a Set of hobbyIds that the user has saved
     const userHobbyIds = new Set(
@@ -47,11 +53,10 @@ export async function POST(request: Request) {
       ...hobby,
       isSaved: userHobbyIds.has(hobby.id),
     }));
-    console.log({ hobbiesWithIsSaved });
     // Return the paginated list with the total count
     return NextResponse.json({
-      message: "Validation error",
-      error: true,
+      message: "Data fetch success",
+      error: false,
       data: {
         hobbies: hobbiesWithIsSaved,
         totalHobbies,

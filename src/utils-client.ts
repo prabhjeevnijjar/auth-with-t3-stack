@@ -54,3 +54,49 @@ export const slpitEmail = (email: string) => {
   );
 };
 
+export const isAuthenticated = async (token: string) => {
+  if (!token)
+    return {
+      message: "Token not found",
+      error: true,
+      data: {
+        userId: null,
+      },
+    };
+
+  try {
+    const response = await fetch(
+      process.env.BASE_URL + "/api/auth/auth-middleware",
+      {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+      },
+    );
+    const json = await response.json();
+    console.log({ json });
+    if (json.error === false) {
+      return {
+        message: "User authenticated",
+        error: false,
+        data: {
+          userId: json?.data?.id,
+        },
+      };
+    }
+    return {
+      message: "Something went the wrong way",
+      error: true,
+      data: {},
+    };
+  } catch (error) {
+    return {
+      message: "Something went the wrong way",
+      error: true,
+      data: {},
+    };
+  }
+};
