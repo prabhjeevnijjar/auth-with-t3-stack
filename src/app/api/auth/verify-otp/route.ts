@@ -106,7 +106,7 @@ export async function POST(request: Request, res: Response) {
         cookies().set({
           name: "name",
           value: token,
-          httpOnly: true,
+          httpOnly: false, //todo
           maxAge: 3600, // 1 hour
           path: "/",
           secure: process.env.NODE_ENV === "production",

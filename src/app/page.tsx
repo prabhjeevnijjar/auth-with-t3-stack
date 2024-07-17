@@ -1,6 +1,5 @@
-// import { HydrateClient } from "~/trpc/server";
-import CheckboxSubmit from "~/components/CheckboxSubmit";
+import HobbyList from "~/components/HobbyLIst";
 
 export default function Home() {
-  return <CheckboxSubmit />;
+  return <HobbyList />;
 }
